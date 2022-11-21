@@ -19,8 +19,10 @@ const router = express_1.default.Router();
 // get a list by id
 router.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const list = yield List_1.default.findById(req.params.id);
-        console.log(list);
+        const list = yield List_1.default.findById(req.params.id).populate({
+            path: 'categories',
+            populate: { path: 'items' },
+        });
         res.json({ message: `Successfully fetched list with id ${req.params.id}`, record: list });
     }
     catch (err) {
@@ -68,7 +70,7 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 router.put('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { owner, title } = req.body;
-        const list = yield List_1.default.findByIdAndUpdate(req.params.id, { owner, title });
+        const list = yield List_1.default.findByIdAndUpdate(req.params.id, { owner, title }, { new: true });
         res.json({ message: `Successfully updated list "${title}"`, record: list });
     }
     catch (err) {
@@ -86,6 +88,24 @@ router.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Unable to delete list', err });
+    }
+}));
+// delete a category from a list
+router.delete('/:listId/category/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // TODO how can we also delete all items associated with this category?
+        // delete the category
+        const category = yield Category_1.default.findByIdAndDelete(req.params.id);
+        // remove category from list
+        yield List_1.default.findByIdAndUpdate(req.params.listId, { $pull: { categories: req.params.id } }, { new: true });
+        res.json({
+            message: `Successfully deleted category with id ${req.params.id}`,
+            record: category,
+        });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Unable to delete category', err });
     }
 }));
 exports.default = router;

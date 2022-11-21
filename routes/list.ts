@@ -7,9 +7,10 @@ const router = express.Router();
 // get a list by id
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const list = await List.findById(req.params.id);
-
-    console.log(list);
+    const list = await List.findById(req.params.id).populate({
+      path: 'categories',
+      populate: { path: 'items' },
+    });
 
     res.json({ message: `Successfully fetched list with id ${req.params.id}`, record: list });
   } catch (err) {
@@ -72,7 +73,7 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { owner, title } = req.body;
 
-    const list = await List.findByIdAndUpdate(req.params.id, { owner, title });
+    const list = await List.findByIdAndUpdate(req.params.id, { owner, title }, { new: true });
 
     res.json({ message: `Successfully updated list "${title}"`, record: list });
   } catch (err) {
@@ -94,6 +95,32 @@ router.delete('/:id', async (req: Request, res: Response) => {
     console.error(err);
 
     res.status(500).json({ message: 'Unable to delete list', err });
+  }
+});
+
+// delete a category from a list
+router.delete('/:listId/category/:id', async (req: Request, res: Response) => {
+  try {
+    // TODO how can we also delete all items associated with this category?
+
+    // delete the category
+    const category = await Category.findByIdAndDelete(req.params.id);
+
+    // remove category from list
+    await List.findByIdAndUpdate(
+      req.params.listId,
+      { $pull: { categories: req.params.id } },
+      { new: true }
+    );
+
+    res.json({
+      message: `Successfully deleted category with id ${req.params.id}`,
+      record: category,
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({ message: 'Unable to delete category', err });
   }
 });
 

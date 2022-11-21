@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import connectDB from './helpers/connectDB';
 import listRouter from './routes/list';
 import categoryRouter from './routes/category';
+import itemRouter from './routes/item';
+import userRouter from './routes/user';
 
 dotenv.config();
 
@@ -13,8 +15,10 @@ app.use(express.json());
 
 connectDB();
 
+app.use('/user', userRouter);
 app.use('/list', listRouter);
 app.use('/category', categoryRouter);
+app.use('/item', itemRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Grocery List API');

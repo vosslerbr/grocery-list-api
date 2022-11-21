@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import Category from '../models/Category';
-import List from '../models/List';
+import Item from '../models/Item';
 
 const router = express.Router();
 
@@ -19,21 +19,53 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// delete a category
-router.delete('/:id', async (req: Request, res: Response) => {
+// add an item to a category
+router.post('/:id/item', async (req: Request, res: Response) => {
   try {
-    // TODO how can we also delete all items associated with this category, and remove any refs to this Category?
+    const { name, quantity, checked } = req.body;
 
-    const category = await Category.findByIdAndDelete(req.params.id);
+    const item = new Item({
+      name,
+      quantity,
+      checked,
+    });
+
+    item.save();
+
+    await Category.findByIdAndUpdate(req.params.id, { $push: { items: item._id } }, { new: true });
 
     res.json({
-      message: `Successfully deleted category with id ${req.params.id}`,
-      record: category,
+      message: `Successfully created item with id ${item._id}`,
+      record: item,
+    });
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({ message: 'Unable to add item to category', err });
+  }
+});
+
+// delete an item from a category
+router.delete('/:categoryId/item/:id', async (req: Request, res: Response) => {
+  try {
+    // delete the item
+    const item = await Item.findByIdAndDelete(req.params.id);
+
+    // remove category from list
+    await Category.findByIdAndUpdate(
+      req.params.categoryId,
+      { $pull: { items: req.params.id } },
+      { new: true }
+    );
+
+    res.json({
+      message: `Successfully deleted item with id ${req.params.id}`,
+      record: item,
     });
   } catch (err) {
     console.error(err);
 
-    res.status(500).json({ message: 'Unable to delete category', err });
+    res.status(500).json({ message: 'Unable to delete item', err });
   }
 });
 
