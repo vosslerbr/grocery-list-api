@@ -5,6 +5,7 @@ import listRouter from './routes/list';
 import categoryRouter from './routes/category';
 import itemRouter from './routes/item';
 import userRouter from './routes/user';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -12,6 +13,8 @@ const app: Express = express();
 const port = process.env.PORT;
 
 app.use(express.json());
+
+app.use(cors());
 
 connectDB();
 

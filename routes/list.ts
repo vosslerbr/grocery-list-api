@@ -20,33 +20,6 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// add a category to a list
-router.post('/:id/category', async (req: Request, res: Response) => {
-  try {
-    const category = new Category({
-      title: req.body.title,
-      items: [],
-    });
-
-    category.save();
-
-    await List.findByIdAndUpdate(
-      req.params.id,
-      { $push: { categories: category._id } },
-      { new: true }
-    );
-
-    res.json({
-      message: `Successfully created category with id ${category._id}`,
-      record: category,
-    });
-  } catch (err) {
-    console.log(err);
-
-    res.status(500).json({ message: 'Unable to add category to list', err });
-  }
-});
-
 // create a new list
 router.post('/', async (req: Request, res: Response) => {
   try {
@@ -87,6 +60,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     // TODO how can we also delete all categories and items associated with this list?
+    //? looks like Mongoose might have a middleware solution for this
 
     const list = await List.findByIdAndDelete(req.params.id);
 
@@ -98,10 +72,38 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// add a category to a list
+router.post('/:id/category', async (req: Request, res: Response) => {
+  try {
+    const category = new Category({
+      title: req.body.title,
+      items: [],
+    });
+
+    category.save();
+
+    await List.findByIdAndUpdate(
+      req.params.id,
+      { $push: { categories: category._id } },
+      { new: true }
+    );
+
+    res.json({
+      message: `Successfully created category with id ${category._id}`,
+      record: category,
+    });
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({ message: 'Unable to add category to list', err });
+  }
+});
+
 // delete a category from a list
 router.delete('/:listId/category/:id', async (req: Request, res: Response) => {
   try {
     // TODO how can we also delete all items associated with this category?
+    //? looks like Mongoose might have a middleware solution for this
 
     // delete the category
     const category = await Category.findByIdAndDelete(req.params.id);
