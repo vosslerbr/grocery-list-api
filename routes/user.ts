@@ -4,6 +4,8 @@ import User from '../models/User';
 
 const router = express.Router();
 
+// TODO move all these to a controller file
+
 // get a user by id
 router.get('/:id', async (req: Request, res: Response) => {
   try {
