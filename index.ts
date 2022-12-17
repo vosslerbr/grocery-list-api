@@ -96,12 +96,14 @@ io.on('connection', (socket) => {
     }
   });
 
-  // TODO add type
-  socket.on('item update', async (itemdata) => {
-    const res = await updateItem(itemdata);
+  socket.on(
+    'item update',
+    async (itemdata: { id: string; name: string; quantity: number; checked: boolean }) => {
+      const res = await updateItem(itemdata);
 
-    io.emit('item update', res);
-  });
+      io.emit('item update', res);
+    }
+  );
 });
 
 const port = process.env.PORT;
