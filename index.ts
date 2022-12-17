@@ -15,6 +15,9 @@ import updateList from './controllers/lists/updateList';
 import deleteList from './controllers/lists/deleteList';
 import addCategoryToList from './controllers/categories/addCategoryToList';
 import deleteCategoryFromList from './controllers/categories/deleteCategoryFromList';
+import updateCategory from './controllers/categories/updateCategory';
+import addItemToCategory from './controllers/items/addItemToCategory';
+import deleteItemFromCategory from './controllers/items/deleteItemFromCategory';
 
 dotenv.config();
 
@@ -93,6 +96,45 @@ io.on('connection', (socket) => {
     } else {
       // if successful, send success message to all clients
       io.emit('delete category', res);
+    }
+  });
+
+  socket.on('update category', async (categorydata: { id: string; title: string }) => {
+    const res = await updateCategory(categorydata);
+
+    if (!res.success) {
+      // if unsuccessful, send error message to client only
+      socket.emit('update category', res);
+    } else {
+      // if successful, send success message to all clients
+      io.emit('update category', res);
+    }
+  });
+
+  socket.on(
+    'add item',
+    async (itemdata: { categoryId: string; name: string; quantity: number; checked: boolean }) => {
+      const res = await addItemToCategory(itemdata);
+
+      if (!res.success) {
+        // if unsuccessful, send error message to client only
+        socket.emit('add item', res);
+      } else {
+        // if successful, send success message to all clients
+        io.emit('add item', res);
+      }
+    }
+  );
+
+  socket.on('delete item', async (data: { itemId: string; categoryId: string }) => {
+    const res = await deleteItemFromCategory(data);
+
+    if (!res.success) {
+      // if unsuccessful, send error message to client only
+      socket.emit('delete item', res);
+    } else {
+      // if successful, send success message to all clients
+      io.emit('delete item', res);
     }
   });
 
