@@ -24,9 +24,28 @@ dotenv.config();
 const app: Express = express();
 const httpServer = createServer(app);
 
-const io = new Server(httpServer, {});
+const port = process.env.PORT;
+
+app.use(express.json());
+
+app.use(cors());
+
+connectDB();
+
+app.use('/user', userRouter);
+app.use('/list', listRouter);
+app.use('/category', categoryRouter);
+app.use('/item', itemRouter);
+
+app.get('/', (req: Request, res: Response) => {
+  res.send('Grocery List API');
+});
+
+const io = new Server(httpServer, { path: '/list-socket', cors: { origin: '*' } });
 
 io.on('connection', (socket) => {
+  socket.emit('connection', null);
+
   console.log('a user connected');
   socket.on('disconnect', () => {
     console.log('user disconnected');
@@ -146,23 +165,6 @@ io.on('connection', (socket) => {
       io.emit('item update', res);
     }
   );
-});
-
-const port = process.env.PORT;
-
-app.use(express.json());
-
-app.use(cors());
-
-connectDB();
-
-app.use('/user', userRouter);
-app.use('/list', listRouter);
-app.use('/category', categoryRouter);
-app.use('/item', itemRouter);
-
-app.get('/', (req: Request, res: Response) => {
-  res.send('Grocery List API');
 });
 
 httpServer.listen(port, () => {
